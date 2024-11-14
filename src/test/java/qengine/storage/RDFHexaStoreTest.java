@@ -57,7 +57,16 @@ public class RDFHexaStoreTest {
 
     @Test
     public void testAddRDFAtom() {
-        throw new NotImplementedException();
+        RDFHexaStore store = new RDFHexaStore();
+
+        RDFAtom rdfAtom1 = new RDFAtom(SUBJECT_1, PREDICATE_1, OBJECT_1);
+        RDFAtom rdfAtom2 = new RDFAtom(SUBJECT_2, PREDICATE_2, OBJECT_2);
+
+        store.add(rdfAtom1);
+        assertTrue(store.getAtoms().contains(rdfAtom1), "La base devrait contenir l'atome 1");
+
+        store.add(rdfAtom2);
+        assertTrue(store.getAtoms().contains(rdfAtom2), "La base devrait contenir l'atome 2");
     }
 
     @Test
@@ -67,7 +76,16 @@ public class RDFHexaStoreTest {
 
     @Test
     public void testSize() {
-        throw new NotImplementedException();
+        RDFHexaStore store = new RDFHexaStore();
+
+        RDFAtom rdfAtom1 = new RDFAtom(SUBJECT_1, PREDICATE_1, OBJECT_1);
+        RDFAtom rdfAtom2 = new RDFAtom(SUBJECT_2, PREDICATE_2, OBJECT_2);
+
+        store.add(rdfAtom1);
+        assertEquals(1, store.size(), "La base n'a pas la taille attendue");
+
+        store.add(rdfAtom2);
+        assertEquals(2, store.size(), "La base n'a pas la taille attendue");
     }
 
     @Test
