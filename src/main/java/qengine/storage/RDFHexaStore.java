@@ -92,7 +92,7 @@ public class RDFHexaStore implements RDFStorage {
 
     @Override
     public long size() {
-        return spo.size();
+        return size;
     }
 
     @Override
