@@ -49,7 +49,7 @@ public class RDFHexaStore implements RDFStorage {
 
     @Override
     public boolean add(RDFAtom atom) {
-        return add(
+        return addIndex(
                 index(atom.getTripleSubject()),
                 index(atom.getTriplePredicate()),
                 index(atom.getTripleObject())
@@ -63,13 +63,13 @@ public class RDFHexaStore implements RDFStorage {
      * @param o L'indexe du prédicat
      * @param p L'indexe de l'objet
      */
-    public boolean add(int s, int p, int o) {
-        var r = add(spo, s, p, o)
-                && add(pso, p, s, o)
-                && add(osp, o, s, p)
-                && add(sop, s, o, p)
-                && add(pos, p, o, s)
-                && add(ops, o, p, s);
+    public boolean addIndex(int s, int p, int o) {
+        var r = addToStore(spo, s, p, o)
+                && addToStore(pso, p, s, o)
+                && addToStore(osp, o, s, p)
+                && addToStore(sop, s, o, p)
+                && addToStore(pos, p, o, s)
+                && addToStore(ops, o, p, s);
         if (r) size++;
         return r;
     }
@@ -82,8 +82,8 @@ public class RDFHexaStore implements RDFStorage {
      * @param b Index du deuxième élémént
      * @param c Index du troisième élément
      */
-    private boolean add(Map<Integer, Map<Integer, Set<Integer>>> indexes,
-                     int a, int b, int c) {
+    private boolean addToStore(Map<Integer, Map<Integer, Set<Integer>>> indexes,
+                               int a, int b, int c) {
         var x = indexes.computeIfAbsent(a, k -> new HashMap<>());
         var y = x.computeIfAbsent(b, k -> new HashSet<>());
 
