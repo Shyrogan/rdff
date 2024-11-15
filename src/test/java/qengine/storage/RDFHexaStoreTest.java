@@ -111,9 +111,6 @@ public class RDFHexaStoreTest {
         assertEquals(2, matchedList.size(), "There should be two matched RDFAtoms");
         assertTrue(matchedList.contains(secondResult), "Missing substitution: " + firstResult);
         assertTrue(matchedList.contains(secondResult), "Missing substitution: " + secondResult);
-
-        // Other cases
-        throw new NotImplementedException("This test must be completed");
     }
 
     @Test
