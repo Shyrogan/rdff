@@ -8,8 +8,8 @@ import qengine.model.RDFAtom;
 import qengine.model.StarQuery;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+import static fr.lirmm.graphik.util.stream.Iterators.emptyIterator;
 import static java.util.stream.Collectors.toMap;
 
 /**
@@ -20,14 +20,14 @@ import static java.util.stream.Collectors.toMap;
  */
 public class RDFHexaStore implements RDFStorage {
 
-    private final BidiMap<Integer, Term> dict = new DualHashBidiMap<>();
+    final BidiMap<Integer, Term> dict = new DualHashBidiMap<>();
 
-    private final Map<Integer, Map<Integer, Set<Integer>>> spo = new HashMap<>();
-    private final Map<Integer, Map<Integer, Set<Integer>>> pso = new HashMap<>();
-    private final Map<Integer, Map<Integer, Set<Integer>>> osp = new HashMap<>();
-    private final Map<Integer, Map<Integer, Set<Integer>>> sop = new HashMap<>();
-    private final Map<Integer, Map<Integer, Set<Integer>>> pos = new HashMap<>();
-    private final Map<Integer, Map<Integer, Set<Integer>>> ops = new HashMap<>();
+    final Map<Integer, Map<Integer, Set<Integer>>> spo = new HashMap<>();
+    final Map<Integer, Map<Integer, Set<Integer>>> pso = new HashMap<>();
+    final Map<Integer, Map<Integer, Set<Integer>>> osp = new HashMap<>();
+    final Map<Integer, Map<Integer, Set<Integer>>> sop = new HashMap<>();
+    final Map<Integer, Map<Integer, Set<Integer>>> pos = new HashMap<>();
+    final Map<Integer, Map<Integer, Set<Integer>>> ops = new HashMap<>();
 
     private long size;
 
@@ -37,7 +37,7 @@ public class RDFHexaStore implements RDFStorage {
      * @param term Term
      * @return Index
      */
-    private int index(Term term) {
+    int index(Term term) {
         // TODO: Utiliser une HashMap si le temps d'insertion n'est pas important.
         // BidiMap permet de faire ce get en O(1) mais on passe juste à O(n) si on utilise une Map.
         return dict.inverseBidiMap().computeIfAbsent(term, k -> dict.size() + 1);
@@ -97,7 +97,12 @@ public class RDFHexaStore implements RDFStorage {
 
     @Override
     public Iterator<Substitution> match(RDFAtom atom) {
-        throw new NotImplementedException();
+        for (var matcher: RDFMatcher.values()) {
+            if (matcher.matches(atom)) {
+                return matcher.substitution(this, atom);
+            }
+        }
+        return emptyIterator();
     }
 
     @Override
