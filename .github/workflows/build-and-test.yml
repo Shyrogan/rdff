@@ -1,9 +1,19 @@
-steps:
-  - uses: actions/checkout@v4
-  - uses: actions/setup-java@v4
-    with:
-      java-version: '21'
-      distribution: 'temurin'
-      cache: maven
-  - name: Run the Maven verify phase
-    run: mvn --batch-mode --update-snapshots verify
+name: Build and test with Maven
+
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+
+jobs:
+  build-and-test:
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      - name: Run the Maven verify phase
+        run: mvn --batch-mode --update-snapshots verify
