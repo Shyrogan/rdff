@@ -4,9 +4,11 @@ import fr.boreal.model.logicalElements.api.*;
 import fr.boreal.model.logicalElements.factory.impl.SameObjectTermFactory;
 import fr.boreal.model.logicalElements.impl.SubstitutionImpl;
 import org.apache.commons.lang3.NotImplementedException;
-import org.junit.jupiter.api.Disabled;
 import qengine.model.RDFAtom;
+import qengine.storage.RDFHexaStore;
 import org.junit.jupiter.api.Test;
+import qengine.model.RDFAtom;
+import qengine.model.StarQuery;
 
 import java.util.*;
 
@@ -124,9 +126,34 @@ public class RDFHexaStoreTest {
     }
 
     @Test
-    @Disabled("not implemented")
     public void testMatchStarQuery() {
-        throw new NotImplementedException();
+
+        RDFHexaStore store = new RDFHexaStore();
+
+        // Ajouter des triplets RDF
+        store.add(new RDFAtom(VAR_X, PREDICATE_1, OBJECT_1));
+        store.add(new RDFAtom(VAR_X, PREDICATE_2, OBJECT_2));
+
+        // Construire une requête en étoile avec VAR_X comme sujet central
+        List<RDFAtom> starPattern = List.of(
+                new RDFAtom(VAR_X, PREDICATE_1, OBJECT_1),
+                new RDFAtom(VAR_X, PREDICATE_2, OBJECT_2)
+        );
+        List<Variable> answerVariables = List.of((Variable) VAR_X);
+
+        StarQuery starQuery = new StarQuery("Test Star Query", starPattern, answerVariables);
+
+        // Effectuer le match
+        Iterator<Substitution> matches = store.match(starQuery);
+        List<Substitution> matchedList = new ArrayList<>();
+        matches.forEachRemaining(matchedList::add);
+
+        // Vérifier les résultats attendus
+        Substitution expectedMatch = new SubstitutionImpl();
+        expectedMatch.add(VAR_X, VAR_X); // VAR_X est son propre sujet central (unique)
+
+        assertEquals(1, matchedList.size(), "Une seule correspondance doit être trouvée.");
+        assertTrue(matchedList.contains(expectedMatch), "La correspondance attendue est manquante.");
     }
 
     // Vos autres tests d'HexaStore ici

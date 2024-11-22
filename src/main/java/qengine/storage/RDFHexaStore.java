@@ -1,6 +1,8 @@
 package qengine.storage;
 
-import fr.boreal.model.logicalElements.api.*;
+import fr.boreal.model.logicalElements.api.Atom;
+import fr.boreal.model.logicalElements.api.Substitution;
+import fr.boreal.model.logicalElements.api.Term;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.lang3.NotImplementedException;
@@ -78,9 +80,9 @@ public class RDFHexaStore implements RDFStorage {
      * Insère le triplet dans l'indexing passée en paramètre.
      *
      * @param indexes L'indexing
-     * @param a Index du premier élément
-     * @param b Index du deuxième élémént
-     * @param c Index du troisième élément
+     * @param a       Index du premier élément
+     * @param b       Index du deuxième élémént
+     * @param c       Index du troisième élément
      */
     private boolean addToStore(Map<Integer, Map<Integer, Set<Integer>>> indexes,
                                int a, int b, int c) {
@@ -97,22 +99,99 @@ public class RDFHexaStore implements RDFStorage {
 
     @Override
     public Iterator<Substitution> match(RDFAtom atom) {
-        return RDFMatcher.match(atom)
-                .map(s -> s.substitution(this, atom))
-                .orElse(emptyIterator());
+        for (var matcher : RDFMatcher.values()) {
+            if (matcher.matches(atom)) {
+                return matcher.substitution(this, atom);
+            }
+        }
+        return emptyIterator();
+    }
+
+    private long estimateMatchNumbers(RDFAtom atom) {
+        // Extraction de l'objet et du prédicat depuis l'atome RDF.
+        Term object = atom.getTripleObject();
+        Term predicate = atom.getTriplePredicate();
+
+        // Vérification que les deux termes sont définis
+        if (object == null || predicate == null) {
+            throw new IllegalArgumentException("Object and predicate must be defined to estimate ?S P O.");
+        }
+
+        Integer objectId = dict.getKey(object);
+        Integer predicateId = dict.getKey(predicate);
+
+        if (objectId == null || predicateId == null) {
+            return 0;
+        }
+        Map<Integer, Set<Integer>> predicateMap = ops.get(objectId);
+        if (predicateMap == null) {
+            return 0; // Aucun prédicat associé à cet objet
+        }
+        Set<Integer> subjects = predicateMap.get(predicateId);
+        if (subjects == null) {
+            return 0; // Aucun sujet associé au couple (P, O)
+        }
+        return subjects.size();
     }
 
     @Override
     public Iterator<Substitution> match(StarQuery q) {
-        throw new NotImplementedException();
+        List<RDFAtom> queryAtoms = q.getRdfAtoms();
+
+        // Étape 1 : Trouver le triplet avec le moins de correspondances
+        RDFAtom firstToProcess = null;
+        long minEstimate = Long.MAX_VALUE;
+
+        for (RDFAtom queryAtom : queryAtoms) {
+            long estimate = estimateMatchNumbers(queryAtom);
+            if (estimate < minEstimate) {
+                minEstimate = estimate;
+                firstToProcess = queryAtom;
+            }
+        }
+
+        if (firstToProcess == null) {
+            return Collections.emptyIterator();
+        }
+
+        // Étape 2 : Effectuer le premier match
+        Iterator<Substitution> initialMatches = match(firstToProcess);
+        List<Substitution> validSubstitutions = new ArrayList<>();
+
+        // Étape 3 : Filtrer les substitutions en fonction des autres triplets
+        while (initialMatches.hasNext()) {
+            Substitution currentSubstitution = initialMatches.next();
+            boolean isValid = true;
+
+            for (RDFAtom queryAtom : queryAtoms) {
+                if (queryAtom.equals(firstToProcess)) {
+                    continue; // Ne pas retraiter le triplet déjà matché
+                }
+
+                // Appliquer la substitution actuelle au triplet
+                Atom substitutedAtom = currentSubstitution.createImageOf(queryAtom);
+
+                // Vérifier si ce triplet substitué a des correspondances
+                Iterator<Substitution> matches = match((RDFAtom) substitutedAtom);
+                if (!matches.hasNext()) {
+                    isValid = false;
+                    break;
+                }
+            }
+            if (isValid) {
+                validSubstitutions.add(currentSubstitution);
+            }
+        }
+
+        return validSubstitutions.iterator();
     }
 
     @Override
     public Collection<Atom> getAtoms() {
-        var atoms = new ArrayList<Atom>((int)size());
-        for (var sI: spo.keySet()) {
-            for (var pI: spo.get(sI).keySet()) {
-                for (var oI: spo.get(sI).get(pI)) {
+        var atoms = new ArrayList<Atom>((int) size());
+        for (var sI : spo.keySet()) {
+            for (var pI : spo.get(sI).keySet()) {
+                for (var oI : spo.get(sI).get(pI)) {
                     atoms.add(new RDFAtom(term(sI), term(pI), term(oI)));
                 }
             }
