@@ -5,14 +5,12 @@ import fr.boreal.model.logicalElements.api.Substitution;
 import fr.boreal.model.logicalElements.api.Term;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-import org.apache.commons.lang3.NotImplementedException;
 import qengine.model.RDFAtom;
 import qengine.model.StarQuery;
 
 import java.util.*;
 
 import static fr.lirmm.graphik.util.stream.Iterators.emptyIterator;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * Implémentation d'un HexaStore pour stocker des RDFAtom.
@@ -169,10 +167,10 @@ public class RDFHexaStore implements RDFStorage {
                 }
 
                 // Appliquer la substitution actuelle au triplet
-                Atom substitutedAtom = currentSubstitution.createImageOf(queryAtom);
+                RDFAtom substitutedAtom = applySubstitutionToAtom(queryAtom, currentSubstitution);
 
                 // Vérifier si ce triplet substitué a des correspondances
-                Iterator<Substitution> matches = match((RDFAtom) substitutedAtom);
+                Iterator<Substitution> matches = match(substitutedAtom);
                 if (!matches.hasNext()) {
                     isValid = false;
                     break;
@@ -199,4 +197,11 @@ public class RDFHexaStore implements RDFStorage {
         return atoms;
     }
 
+    private RDFAtom applySubstitutionToAtom(RDFAtom atom, Substitution substitution) {
+        Term substitutedSubject = substitution.createImageOf(atom.getTripleSubject());
+        Term substitutedPredicate = substitution.createImageOf(atom.getTriplePredicate());
+        Term substitutedObject = substitution.createImageOf(atom.getTripleObject());
+
+        return new RDFAtom(substitutedSubject, substitutedPredicate, substitutedObject);
+    }
 }
