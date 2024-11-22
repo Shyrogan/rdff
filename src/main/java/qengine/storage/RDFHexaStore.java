@@ -97,12 +97,9 @@ public class RDFHexaStore implements RDFStorage {
 
     @Override
     public Iterator<Substitution> match(RDFAtom atom) {
-        for (var matcher: RDFMatcher.values()) {
-            if (matcher.matches(atom)) {
-                return matcher.substitution(this, atom);
-            }
-        }
-        return emptyIterator();
+        return RDFMatcher.match(atom)
+                .map(s -> s.substitution(this, atom))
+                .orElse(emptyIterator());
     }
 
     @Override
