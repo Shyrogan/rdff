@@ -70,7 +70,6 @@ public class RDFHexaStoreTest {
     }
 
     @Test
-    @Disabled("not implemented")
     public void testAddDuplicateAtom() {
         RDFHexaStore store = new RDFHexaStore();
 
