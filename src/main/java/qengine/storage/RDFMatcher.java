@@ -10,6 +10,8 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyIterator;
+
 public enum RDFMatcher {
 
     VAR_LIT_LIT(
@@ -32,8 +34,8 @@ public enum RDFMatcher {
                         .entrySet().stream()
                         .flatMap(entry -> entry.getValue().stream()
                                 .map(i -> (Substitution) new SubstitutionImpl(Map.of(
-                                        (Variable) atom.getTripleSubject(), store.dict.get(entry.getKey()),
-                                        (Variable) atom.getTriplePredicate(), store.dict.get(i)))))
+                                        (Variable) atom.getTriplePredicate(), store.dict.get(entry.getKey()),
+                                        (Variable) atom.getTripleSubject(), store.dict.get(i)))))
                         .collect(Collectors.toSet());
                 return results.iterator();
             }),
@@ -95,7 +97,16 @@ public enum RDFMatcher {
     LIT_LIT_LIT(
             atom -> !atom.getTripleSubject().isVariable() && !atom.getTriplePredicate().isVariable()
                     && !atom.getTripleObject().isVariable(),
-            (store, atom) -> Collections.singleton((Substitution)new SubstitutionImpl(Collections.emptyMap())).iterator());
+            (store, atom) -> emptyIterator());
+
+    public static Optional<RDFMatcher> match(RDFAtom atom) {
+        for (var matcher: RDFMatcher.values()) {
+            if (matcher.matches(atom)) {
+                return Optional.of(matcher);
+            }
+        }
+        return Optional.empty();
+    }
 
     private final Predicate<RDFAtom> predicate;
     private final BiFunction<RDFHexaStore, RDFAtom, Iterator<Substitution>> extractor;
