@@ -1,5 +1,6 @@
 package qengine.storage;
 
+import com.google.common.collect.Iterators;
 import fr.boreal.model.logicalElements.api.Substitution;
 import fr.boreal.model.logicalElements.api.Variable;
 import fr.boreal.model.logicalElements.impl.SubstitutionImpl;
@@ -97,7 +98,7 @@ public enum RDFMatcher {
     LIT_LIT_LIT(
             atom -> !atom.getTripleSubject().isVariable() && !atom.getTriplePredicate().isVariable()
                     && !atom.getTripleObject().isVariable(),
-            (store, atom) -> emptyIterator());
+            (store, atom) -> Iterators.singletonIterator(new SubstitutionImpl(Map.of())));
 
     public static Optional<RDFMatcher> match(RDFAtom atom) {
         for (var matcher: RDFMatcher.values()) {

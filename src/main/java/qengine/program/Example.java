@@ -1,5 +1,7 @@
 package qengine.program;
 
+import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import fr.boreal.model.formula.api.FOFormula;
 import fr.boreal.model.formula.api.FOFormulaConjunction;
 import fr.boreal.model.query.api.Query;
@@ -14,18 +16,23 @@ import qengine.model.RDFAtom;
 import qengine.model.StarQuery;
 import qengine.parser.RDFAtomParser;
 import qengine.parser.StarQuerySparQLParser;
+import qengine.storage.RDFHexaStore;
 
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class Example {
 
 	private static final String WORKING_DIR = "data/";
 	private static final String SAMPLE_DATA_FILE = WORKING_DIR + "sample_data.nt";
 	private static final String SAMPLE_QUERY_FILE = WORKING_DIR + "sample_query.queryset";
+	private static final String HUNDREDK = WORKING_DIR + "100K.nt";
+	private static final String STAR_ALL = WORKING_DIR + "STAR_ALL_workload.queryset";
 
 	public static void main(String[] args) throws IOException {
 		/*
@@ -42,14 +49,39 @@ public final class Example {
 		 */
 		System.out.println("\n=== Executing the queries with Integraal ===");
 		FactBase factBase = new SimpleInMemoryGraphStore();
+		RDFHexaStore hexaFactBase = new RDFHexaStore();
 		for (RDFAtom atom : rdfAtoms) {
 			factBase.add(atom);  // Stocker chaque RDFAtom dans le store
+			hexaFactBase.add(atom);
 		}
 
 		// Exécuter les requêtes sur le store
 		for (StarQuery starQuery : starQueries) {
-			executeStarQuery(starQuery, factBase);
+			compareStarQuery(starQuery, factBase, hexaFactBase);
 		}
+
+		/**System.out.println("=== Parsing a more complex RDF Data ===");
+		rdfAtoms = parseRDFData(HUNDREDK);
+
+		System.out.println("\n=== Parsing Sample Queries ===");
+		starQueries = parseSparQLQueries(STAR_ALL);
+
+
+		System.out.println("\n=== Executing the queries with Integraal ===");
+		factBase = new SimpleInMemoryGraphStore();
+		hexaFactBase = new RDFHexaStore();
+		for (RDFAtom atom : rdfAtoms) {
+			factBase.add(atom);  // Stocker chaque RDFAtom dans le store
+			hexaFactBase.add(atom);
+		}
+
+		// Exécuter les requêtes sur le store
+		FactBase finalFactBase = factBase;
+		RDFHexaStore finalHexaFactBase = hexaFactBase;
+		var equals = starQueries.stream()
+				.map(starQuery -> compareStarQuery(starQuery, finalFactBase, finalHexaFactBase))
+				.toList();
+		System.out.printf("Succeeded on %s/%s requests%n", equals.stream().filter(b -> b).count(), equals.size());**/
 	}
 
 	/**
@@ -124,5 +156,20 @@ public final class Example {
 			System.out.println(result); // Afficher chaque réponse
 		}
 		System.out.println();
+	}
+
+	public static boolean compareStarQuery(StarQuery starQuery, FactBase factBase, RDFHexaStore hexaStore) {
+		var queryIterable = GenericFOQueryEvaluator.defaultInstance().evaluate(starQuery.asFOQuery(), factBase);
+		var queryResults = Streams.stream(queryIterable).collect(Collectors.toSet());
+		var hexaResults = Streams.stream(hexaStore.match(starQuery)).collect(Collectors.toSet());
+		System.out.printf("Are query results equals? %s%n", queryResults.equals(hexaResults));
+		if (!queryResults.equals(hexaResults)) {
+			var union = new HashSet<>(Sets.union(hexaResults, queryResults));
+			var inter = Sets.intersection(queryResults, hexaResults);
+			union.removeAll(inter);
+			System.out.println("DEBUG: " + union);
+			return false;
+		}
+		return true;
 	}
 }

@@ -3,13 +3,17 @@ package qengine.storage;
 import fr.boreal.model.logicalElements.api.*;
 import fr.boreal.model.logicalElements.factory.impl.SameObjectTermFactory;
 import fr.boreal.model.logicalElements.impl.SubstitutionImpl;
+import fr.boreal.storage.natives.SimpleInMemoryGraphStore;
 import org.apache.commons.lang3.NotImplementedException;
 import qengine.model.RDFAtom;
+import qengine.parser.RDFAtomParser;
 import qengine.storage.RDFHexaStore;
 import org.junit.jupiter.api.Test;
 import qengine.model.RDFAtom;
 import qengine.model.StarQuery;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -156,5 +160,4 @@ public class RDFHexaStoreTest {
         assertTrue(matchedList.contains(expectedMatch), "La correspondance attendue est manquante.");
     }
 
-    // Vos autres tests d'HexaStore ici
 }

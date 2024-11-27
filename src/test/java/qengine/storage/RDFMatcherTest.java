@@ -140,7 +140,9 @@ public class RDFMatcherTest {
         assertEquals(RDFMatcher.LIT_LIT_LIT, matcher, "(LIT, LIT, LIT) matcher expected");
 
         for (Iterator<Substitution> it = matcher.substitution(store, atom); it.hasNext();) {
-            fail("There shouldn't be a substitution if there are no variables");
+            var sub = it.next();
+            if (!sub.keys().isEmpty())
+                fail("There should be an empty substitution only if there are no variables");
         }
     }
 
