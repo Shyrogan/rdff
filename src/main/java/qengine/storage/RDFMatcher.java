@@ -98,7 +98,7 @@ public enum RDFMatcher {
     LIT_LIT_LIT(
             atom -> !atom.getTripleSubject().isVariable() && !atom.getTriplePredicate().isVariable()
                     && !atom.getTripleObject().isVariable(),
-            (store, atom) -> Iterators.singletonIterator(new SubstitutionImpl(Map.of())));
+            (store, atom) -> emptyIterator());
 
     public static Optional<RDFMatcher> match(RDFAtom atom) {
         for (var matcher: RDFMatcher.values()) {

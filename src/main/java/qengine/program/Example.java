@@ -60,7 +60,7 @@ public final class Example {
 			compareStarQuery(starQuery, factBase, hexaFactBase);
 		}
 
-		/**System.out.println("=== Parsing a more complex RDF Data ===");
+		System.out.println("=== Parsing a more complex RDF Data ===");
 		rdfAtoms = parseRDFData(HUNDREDK);
 
 		System.out.println("\n=== Parsing Sample Queries ===");
@@ -81,7 +81,7 @@ public final class Example {
 		var equals = starQueries.stream()
 				.map(starQuery -> compareStarQuery(starQuery, finalFactBase, finalHexaFactBase))
 				.toList();
-		System.out.printf("Succeeded on %s/%s requests%n", equals.stream().filter(b -> b).count(), equals.size());**/
+		System.out.printf("Succeeded on %s/%s requests%n", equals.stream().filter(b -> b).count(), equals.size());
 	}
 
 	/**
@@ -168,6 +168,7 @@ public final class Example {
 			var inter = Sets.intersection(queryResults, hexaResults);
 			union.removeAll(inter);
 			System.out.println("DEBUG: " + union);
+			System.out.println("DEBUG: " + queryResults + " " + hexaResults);
 			return false;
 		}
 		return true;

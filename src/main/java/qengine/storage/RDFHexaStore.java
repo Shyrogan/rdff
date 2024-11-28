@@ -1,5 +1,7 @@
 package qengine.storage;
 
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Streams;
 import fr.boreal.model.logicalElements.api.Atom;
 import fr.boreal.model.logicalElements.api.Substitution;
 import fr.boreal.model.logicalElements.api.Term;
@@ -9,6 +11,7 @@ import qengine.model.RDFAtom;
 import qengine.model.StarQuery;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static fr.lirmm.graphik.util.stream.Iterators.emptyIterator;
 
@@ -106,37 +109,31 @@ public class RDFHexaStore implements RDFStorage {
     }
 
     private long estimateMatchNumbers(RDFAtom atom) {
-        // Extraction de l'objet et du prédicat depuis l'atome RDF.
-        Term object = atom.getTripleObject();
-        Term predicate = atom.getTriplePredicate();
-
-        // Vérification que les deux termes sont définis
-        if (object == null || predicate == null) {
-            throw new IllegalArgumentException("Object and predicate must be defined to estimate ?S P O.");
-        }
-
-        Integer objectId = dict.getKey(object);
-        Integer predicateId = dict.getKey(predicate);
-
-        if (objectId == null || predicateId == null) {
-            return 0;
-        }
-        Map<Integer, Set<Integer>> predicateMap = ops.get(objectId);
-        if (predicateMap == null) {
-            return 0; // Aucun prédicat associé à cet objet
-        }
-        Set<Integer> subjects = predicateMap.get(predicateId);
-        if (subjects == null) {
-            return 0; // Aucun sujet associé au couple (P, O)
-        }
-        return subjects.size();
+        return ops
+                .getOrDefault(index(atom.getTripleObject()), new HashMap<>())
+                .getOrDefault(index(atom.getTriplePredicate()), new HashSet<>())
+                .size();
     }
 
     @Override
     public Iterator<Substitution> match(StarQuery q) {
-        List<RDFAtom> queryAtoms = q.getRdfAtoms();
+        List<RDFAtom> queryAtoms = new ArrayList<>(q.getRdfAtoms());
 
-        // Étape 1 : Trouver le triplet avec le moins de correspondances
+        var smallestSubstitutionOpt = queryAtoms.stream()
+                .min((q1, q2) -> Math.toIntExact(estimateMatchNumbers(q1) - estimateMatchNumbers(q2)));
+        if (!smallestSubstitutionOpt.isPresent()) {
+            return emptyIterator();
+        }
+        var smallestQuery = smallestSubstitutionOpt.get();
+        queryAtoms.remove(smallestQuery);
+
+        var subs = Streams.stream(match(smallestQuery))
+                .filter(sub -> queryAtoms.stream().allMatch(query -> Streams.stream(match(query))
+                        .anyMatch(sub::equals)));
+
+        return subs.iterator();
+
+        /** Étape 1 : Trouver le triplet avec le moins de correspondances
         RDFAtom firstToProcess = null;
         long minEstimate = Long.MAX_VALUE;
 
@@ -181,7 +178,7 @@ public class RDFHexaStore implements RDFStorage {
             }
         }
 
-        return validSubstitutions.iterator();
+        return validSubstitutions.iterator();**/
     }
 
     @Override
