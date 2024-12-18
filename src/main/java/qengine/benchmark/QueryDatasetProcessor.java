@@ -15,9 +15,9 @@ import java.util.*;
 
 public class QueryDatasetProcessor {
     private static final String WORKING_DIR = "data/";
-    //private static final String DATASET_FILE = WORKING_DIR + "2M/jeu2M.nt";
-    private static final String DATASET_FILE = WORKING_DIR + "500k/jeu500K.nt";
-    private static final String QUERYSET_DIR = WORKING_DIR + "queryset/";
+    private static final String DATASET_FILE = WORKING_DIR + "2M/jeu2M.nt";
+    //private static final String DATASET_FILE = WORKING_DIR + "500k/jeu500K.nt";
+    private static final String QUERYSET_DIR = WORKING_DIR + "set2/";
     private static final double EMPTY_QUERIES_RATIO = 0.05; // 5% de requêtes vides à conserver
 
     public static void main(String[] args) throws IOException {
@@ -30,7 +30,7 @@ public class QueryDatasetProcessor {
         System.out.println("\n=== Loading and Analyzing Queries ===");
         List<StarQuery> allQueries = loadAllQueriesFromDirectory(QUERYSET_DIR);
         int queriesNuber = allQueries.size();
-        System.out.println("\ninital queies number: "+ queriesNuber);
+        System.out.println("\ninital queries number: " + queriesNuber);
         QueryAnalysisResult analysisResult = analyzeQueries(allQueries, hexaFactBase);
 
         // Génération du jeu de données final
@@ -40,7 +40,7 @@ public class QueryDatasetProcessor {
         // Export du jeu de données final
         System.out.println("\n=== Exporting Final Dataset ===");
         // exportQueries(finalDataset, WORKING_DIR + "2M/filtered.nt");
-        exportQueries(finalDataset, WORKING_DIR + "500k/filtered.nt");
+        exportQueries(finalDataset, WORKING_DIR + "2M/filtered.nt");
 
         // Affichage des statistiques
         printStatistics(analysisResult, finalDataset);
@@ -101,7 +101,7 @@ public class QueryDatasetProcessor {
     private static List<StarQuery> selectRandomQueries(List<StarQuery> queries, int count) {
         List<StarQuery> copyList = new ArrayList<>(queries);
         Collections.shuffle(copyList);
-        List<StarQuery> returnedList= copyList.subList(0, Math.min(count, copyList.size()));
+        List<StarQuery> returnedList = copyList.subList(0, Math.min(count, copyList.size()));
         System.out.println("kept empty queries :" + returnedList.size());
         return returnedList;
     }
@@ -121,7 +121,10 @@ public class QueryDatasetProcessor {
             List<StarQuery> emptyQueries,
             List<StarQuery> nonEmptyQueries,
             Map<Long, Long> counts
-    ){};
+    ) {
+    }
+
+    ;
 
     /**
      * Charge toutes les requêtes de tous les fichiers d'un répertoire.
@@ -190,8 +193,8 @@ public class QueryDatasetProcessor {
     /**
      * Exporte les requêtes uniques dans un fichier.
      *
-     * @param queries Set des requêtes uniques
-     * @param filename      Le nom du fichier de sortie
+     * @param queries  Set des requêtes uniques
+     * @param filename Le nom du fichier de sortie
      * @throws IOException Si une erreur survient lors de l'écriture du fichier
      */
     private static void exportQueries(List<StarQuery> queries, String filename) throws IOException {
