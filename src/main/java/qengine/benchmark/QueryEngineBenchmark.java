@@ -20,10 +20,10 @@ import java.util.List;
 
 public class QueryEngineBenchmark {
     private static final String WORKING_DIR = "data/";
-    private static final String DATASET_FILE = WORKING_DIR + "benchmark_data.nt";
-    private static final String QUERYSET_FILE = WORKING_DIR + "queryset/";
+    private static final String DATASET_FILE = WORKING_DIR + "2M/jeu2M.nt";
+    private static final String QUERYSET_FILE = WORKING_DIR + "2M/queries.queryset";
 
-    private static final String OUPUT_FILE = "benchmark_results.txt";
+    private static final String OUTPUT_FILE = "benchmark_results.csv";
     private static final double WARMUP_RATIO = 0.3; // 30% pour le warmup
 
     public static void main(String[] args) throws IOException {
@@ -51,7 +51,7 @@ public class QueryEngineBenchmark {
                 benchmarkSets.benchmarkQueries, hexaStore);
 
         // Export des résultats
-        exportResults(results, OUPUT_FILE);
+        exportResults(results, OUTPUT_FILE);
     }
 
     private static RDFHexaStore initializeHexaStore(List<RDFAtom> atoms) {
@@ -112,10 +112,9 @@ public class QueryEngineBenchmark {
     private static void exportResults(List<QueryExecutionResult> results, String outputFile)
             throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
-            writer.write("query,resultCount,executionTimeNs\n");
+            writer.write("resultCount,executionTimeNs\n");
             for (QueryExecutionResult result : results) {
-                writer.write(String.format("%s,%d,%d%n",
-                        result.queryLabel(),
+                writer.write(String.format("%d,%d%n",
                         result.resultCount(),
                         result.executionTimeNs()
                 ));
