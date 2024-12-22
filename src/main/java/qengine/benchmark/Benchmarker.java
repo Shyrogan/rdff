@@ -60,25 +60,30 @@ public class Benchmarker<S> {
     }
 
     public Measurement measureQuerySet(File file, BiConsumer<S, StarQuery> function) {
-        final List<Long> nanoDiffs = new LinkedList<>();
+        long totalNanoTime = 0L;
+        int queryCount = 0;
+
         try (StarQuerySparQLParser queryParser = new StarQuerySparQLParser(file.getPath())) {
             while (queryParser.hasNext()) {
                 Query query = queryParser.next();
                 if (query instanceof StarQuery starQuery) {
                     long nanoStart = System.nanoTime();
                     function.accept(store, starQuery);
-                    nanoDiffs.add(System.nanoTime() - nanoStart);
+                    totalNanoTime += System.nanoTime() - nanoStart;
+                    queryCount++;
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         return new Measurement(
-                nanoDiffs.stream().mapToLong(s -> s).sum() / 1.0e6,
-                nanoDiffs.stream().mapToLong(s -> s).average().orElse(0.0) / 1.0e6
+                totalNanoTime / 1.0e6,  // Convert nanoseconds to milliseconds
+                queryCount > 0 ? (totalNanoTime / (double) queryCount) / 1.0e6 : 0.0  // Average per query
         );
     }
 
-    public record Measurement(double totalTime, double avgRequestTime) {}
-
+    public record Measurement(double totalTime, double avgRequestTime) {
+    }
 }
+
