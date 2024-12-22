@@ -15,8 +15,8 @@ import java.util.*;
 
 public class QueryDatasetProcessor {
     private static final String WORKING_DIR = "data/";
-    //private static final String DATASET_FILE = WORKING_DIR + "2M/jeu2M.nt";
-    private static final String DATASET_FILE = WORKING_DIR + "500k/jeu500K.nt";
+    private static final String DATASET_FILE = WORKING_DIR + "2M/jeu2M.nt";
+    //private static final String DATASET_FILE = WORKING_DIR + "500k/jeu500K.nt";
     private static final String QUERYSET_DIR = WORKING_DIR + "set2/";
     private static final double EMPTY_QUERIES_RATIO = 0.05; // 5% de requêtes vides à conserver
 
@@ -39,8 +39,8 @@ public class QueryDatasetProcessor {
 
         // Export du jeu de données final
         System.out.println("\n=== Exporting Final Dataset ===");
-        // exportQueries(finalDataset, WORKING_DIR + "2M/jeu2M.nt");
-        exportQueries(finalDataset, WORKING_DIR + "500k/jeu2M.nt");
+        exportQueries(finalDataset, WORKING_DIR + "2M/jeu2M.nt");
+        //exportQueries(finalDataset, WORKING_DIR + "500k/jeu2M.nt");
 
         // Affichage des statistiques
         printStatistics(analysisResult, finalDataset);
