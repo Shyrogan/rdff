@@ -1,16 +1,13 @@
 package qengine.benchmark;
 
 import fr.boreal.model.query.api.Query;
-import org.eclipse.rdf4j.rio.RDFFormat;
 import qengine.model.RDFAtom;
 import qengine.model.StarQuery;
 import qengine.parser.RDFAtomParser;
 import qengine.parser.StarQuerySparQLParser;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +32,7 @@ public class Benchmarker<S> {
         return this;
     }
 
-    public Benchmarker<S> executeQuerySet(int factor, File file, BiConsumer<S, StarQuery> function) {
+    public Benchmarker<S> executeQuerySet(int factor, float dataSetFactor, File file, BiConsumer<S, StarQuery> function) {
         final var queries = new LinkedList<StarQuery>();
         try (StarQuerySparQLParser queryParser = new StarQuerySparQLParser(file.getPath())) {
             while (queryParser.hasNext()) {
@@ -49,13 +46,13 @@ public class Benchmarker<S> {
         }
 
         for (int i = 0; i < factor; i++) {
-            System.out.println("Factor " + i + ": " + queries.size());
             Collections.shuffle(queries);
-            for (var query : queries) {
-                function.accept(store, query);
+            for (var iQuery = 0; iQuery < (queries.size() * dataSetFactor); iQuery++) {
+                function.accept(store, queries.get(iQuery));
             }
         }
 
+        Collections.shuffle(queries);
         return this;
     }
 
@@ -85,7 +82,7 @@ public class Benchmarker<S> {
         }
 
         return new Measurement(
-                totalNanoTime / 1.0e6, // Convert nanoseconds to milliseconds
+                totalNanoTime / 1.0e6,
                 queryCount > 0 ? (totalNanoTime / (double) queryCount) / 1.0e6 : 0.0
         );
     }
